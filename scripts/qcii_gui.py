@@ -236,7 +236,7 @@ class QCIIApp(tk.Tk):
 
         self.suppress_warble = tk.BooleanVar(value=False)
         self.suppress_warble_chk = ttk.Checkbutton(
-            form, text="Suppress Alert (skip C/D Alert)", variable=self.suppress_warble,
+            form, text="Page Only (supress C/D Tones)", variable=self.suppress_warble,
             command=self.on_toggle_warble,
         )
         self.suppress_warble_chk.grid(row=row, column=0, columnspan=2, sticky="w", pady=(0, 4))
@@ -244,7 +244,7 @@ class QCIIApp(tk.Tk):
 
         self.warble_only = tk.BooleanVar(value=False)
         self.warble_only_chk = ttk.Checkbutton(
-            form, text="Alert Only (skip A/B Page)", variable=self.warble_only,
+            form, text="Alert Only (surpress A/B Tones)", variable=self.warble_only,
             command=self.on_toggle_warble_only,
         )
         self.warble_only_chk.grid(row=row, column=0, columnspan=2, sticky="w", pady=(0, 16))
@@ -595,7 +595,7 @@ class QCIIApp(tk.Tk):
             write_wav(out_path, samples, rate)
             self.last_output = out_path
             total_len = len(samples) / rate
-            self.status_var.set(f"Wrote {out_path} ({total_len:.2f}s).")
+            self.status_var.set(f"Saved {out_path} ({total_len:.2f}s).")
             return True
         except ValueError as e:
             messagebox.showerror("Invalid input", str(e))
