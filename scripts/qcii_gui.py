@@ -38,12 +38,10 @@ import tkinter.font as tkfont
 from tkinter import ttk, filedialog, messagebox
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from qcii_tone_gen import build_page, write_wav
+from qcii_tone_gen import build_page, write_wav, default_output_dir
 from generate_all_pairs import GROUP_ASSIGNMENT, POSITION_DIGITS, tone_at_position
 
-DEFAULT_OUT = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "output", "qcii_page.wav"
-)
+DEFAULT_OUT = os.path.join(default_output_dir(), "qcii_page.wav")
 DEFAULT_C = "1500"
 DEFAULT_D = "800"
 

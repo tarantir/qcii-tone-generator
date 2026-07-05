@@ -33,7 +33,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from qcii_tone_gen import build_page, write_wav  # noqa: E402
+from qcii_tone_gen import build_page, write_wav, default_output_dir  # noqa: E402
 
 REED_GROUPS = {
     1: [349.0, 368.5, 389.0, 410.8, 433.7, 457.9, 483.5, 510.5, 539.0, 330.5],
@@ -131,7 +131,7 @@ def main():
                     help="Independent warble tone D frequency (Hz). Default: reuse A/B.")
     args = p.parse_args()
 
-    out_dir = os.path.join(os.path.dirname(__file__), "..", "output")
+    out_dir = default_output_dir()
     os.makedirs(out_dir, exist_ok=True)
 
     if args.mode == "full":

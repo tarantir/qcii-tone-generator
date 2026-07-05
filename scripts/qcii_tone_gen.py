@@ -23,13 +23,24 @@ Usage:
 
 import argparse
 import os
+import sys
 import numpy as np
 import wave
 import struct
 
-DEFAULT_OUT = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "output", "qcii_tone_page.wav"
-)
+
+def default_output_dir():
+    """Directory generated WAVs are written to by default: normally the
+    repo-root output/ folder next to scripts/. When frozen into a single
+    executable (PyInstaller etc.), __file__ resolves inside a temporary
+    extraction folder that's deleted when the process exits, so anchor to
+    the executable's own directory instead."""
+    if getattr(sys, "frozen", False):
+        return os.path.join(os.path.dirname(os.path.abspath(sys.executable)), "output")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "output")
+
+
+DEFAULT_OUT = os.path.join(default_output_dir(), "qcii_tone_page.wav")
 
 
 def tone(freq, duration_s, sample_rate, amplitude=0.8, fade_ms=5):
