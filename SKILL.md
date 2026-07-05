@@ -26,7 +26,7 @@ into decode/DSP software.
   attention before voice traffic starts. This can either reuse the same A/B
   tones (alternating rapidly instead of sequentially) or use a completely
   independent tone pair, referred to here as C and D.
-- Real-world example tone set used in prior work: A = 1122.5 Hz, B = 1433.4 Hz.
+- Real-world example tone set used in prior work: A = 321.7 Hz, B = 569.1 Hz.
 - The full standard tone charts (Motorola QC1/QC2 Reed groups, GE Type 99, REACH,
   Plectron, CTCSS, DTMF, and per-format paging timing table) are in
   `references/tone_charts.md`. Load that file when the user needs a specific
@@ -48,20 +48,20 @@ post-silence, then writes a 16-bit PCM mono WAV.
 pip install numpy --break-system-packages  # if not already available
 
 # Basic page, no warble tail
-python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --warble-dur 0 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 321.7 --b 569.1 --warble-dur 0 --out page.wav
 
 # Standard page + warble tail reusing A/B tones (QC-D default behavior)
-python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 321.7 --b 569.1 --out page.wav
 
 # Standard page + warble tail using independent C/D tones
-python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 321.7 --b 569.1 --c 1500 --d 800 --out page.wav
 ```
 
 ### Key flags
 
 | Flag | Meaning | Default |
 |---|---|---|
-| `--a` / `--b` | Page tone frequencies (Hz) | 1122.5 / 1433.4 |
+| `--a` / `--b` | Page tone frequencies (Hz) | 321.7 / 569.1 |
 | `--c` / `--d` | Independent warble tone frequencies (Hz). If omitted, warble reuses A/B. | none (falls back to A/B) |
 | `--a-dur` / `--b-dur` | Page tone durations (s) | 1.0 / 3.0 (standard QCII "1/3") |
 | `--gap` | Silence between A and B tones (s) | 0.0 |

@@ -90,6 +90,13 @@ ALERT_PRESETS = {
 }
 DEFAULT_ALERT = "Alert 2 (1500/800 Hz warble, default)"
 
+# Non-frequency dropdown entries: these drive other widgets/fields instead
+# of setting a literal C/D tone pair, so apply_alert_preset() special-cases
+# them rather than looking them up in ALERT_PRESETS.
+SAME_AS_AB_OPTION = "Same as A/B (reuse page tones)"
+SUPPRESS_ALERT_OPTION = "Suppress Alert (no C/D warble)"
+ALERT_OPTIONS = list(ALERT_PRESETS.keys()) + [SAME_AS_AB_OPTION, SUPPRESS_ALERT_OPTION]
+
 # Fill colors for the timeline visualization canvas (200-stop equivalents,
 # legible on the canvas's white background).
 VIZ_COLORS = {
@@ -179,7 +186,7 @@ class QCIIApp(tk.Tk):
         row += 1
         self.alert_var = tk.StringVar(value=DEFAULT_ALERT)
         alert_combo = ttk.Combobox(alert_frame, textvariable=self.alert_var,
-                                    values=list(ALERT_PRESETS.keys()), width=32, state="readonly")
+                                    values=ALERT_OPTIONS, width=32, state="readonly")
         alert_combo.pack(side="left", padx=8, pady=6)
         alert_combo.bind("<<ComboboxSelected>>", lambda _e: self.apply_alert_preset())
 
@@ -296,10 +303,30 @@ class QCIIApp(tk.Tk):
         )
 
     def apply_alert_preset(self):
-        c_freq, d_freq = ALERT_PRESETS[self.alert_var.get()]
+        selection = self.alert_var.get()
+
+        if selection == SUPPRESS_ALERT_OPTION:
+            self.suppress_warble.set(True)
+            self.on_toggle_warble()
+            self.status_var.set("Alert suppressed (no C/D warble).")
+            return
+
+        # Any other selection means an audible warble is wanted, so undo a
+        # prior "Suppress Alert" pick and re-enable the C/D/warble fields.
+        if self.suppress_warble.get():
+            self.suppress_warble.set(False)
+            self.on_toggle_warble()
+
+        if selection == SAME_AS_AB_OPTION:
+            self.entries["c"].set("")
+            self.entries["d"].set("")
+            self.status_var.set("Warble will reuse A/B tones (C/D cleared).")
+            return
+
+        c_freq, d_freq = ALERT_PRESETS[selection]
         self.entries["c"].set(str(c_freq))
         self.entries["d"].set(str(d_freq))
-        self.status_var.set(f"{self.alert_var.get()}: C={c_freq} Hz, D={d_freq} Hz")
+        self.status_var.set(f"{selection}: C={c_freq} Hz, D={d_freq} Hz")
 
     def on_toggle_warble(self):
         suppressed = self.suppress_warble.get()

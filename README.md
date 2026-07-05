@@ -30,13 +30,13 @@ into decode/DSP software.
 
 ```bash
 # Basic page, no warble tail
-python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --warble-dur 0 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 321.7 --b 569.1 --warble-dur 0 --out page.wav
 
 # Standard page + warble tail reusing A/B tones (QC-D default behavior)
-python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 321.7 --b 569.1 --out page.wav
 
 # Standard page + warble tail using independent C/D tones
-python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 321.7 --b 569.1 --c 1500 --d 800 --out page.wav
 ```
 
 Or launch the desktop GUI:
@@ -59,7 +59,7 @@ Key flags:
 
 | Flag | Meaning | Default |
 |---|---|---|
-| `--a` / `--b` | Page tone frequencies (Hz) | 1122.5 / 1433.4 |
+| `--a` / `--b` | Page tone frequencies (Hz) | 321.7 / 569.1 |
 | `--c` / `--d` | Independent warble tone frequencies (Hz). If omitted, warble reuses A/B. | none (falls back to A/B) |
 | `--a-dur` / `--b-dur` | Page tone durations (s) | 1.0 / 3.0 (standard QCII "1/3") |
 | `--gap` | Silence between A and B tones (s) | 0.0 |
