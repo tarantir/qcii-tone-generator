@@ -45,6 +45,12 @@ Or launch the desktop GUI:
 python3 scripts/qcii_gui.py
 ```
 
+## Screenshots
+
+| Main window | Config | Visualize |
+|---|---|---|
+| ![Main window](references/qcii-main.png) | ![Config dialog](references/qcii-config.png) | ![Visualize window](references/qcii-visualize.png) |
+
 ## Scripts
 
 ### `scripts/qcii_tone_gen.py`
@@ -109,6 +115,22 @@ script:
   generated from the current field values, without writing a WAV file.
 - Durations, sample rate, and amplitude live in a secondary "Config"
   window, keeping the main window focused on tone selection.
+
+## Building a Windows executable
+
+The GUI can be packaged as a standalone Windows `.exe` with
+[PyInstaller](https://pyinstaller.org/):
+
+```bash
+pip install pyinstaller
+pyinstaller --onefile --windowed --name QCIIToneGenerator scripts/qcii_gui.py
+```
+
+`--onefile` bundles the interpreter and dependencies into a single exe;
+`--windowed` suppresses the console window since this is a Tkinter GUI app.
+The result is written to `dist/QCIIToneGenerator.exe`. A prebuilt copy is
+already published at [`Releases/QCIIToneGenerator.exe`](Releases/QCIIToneGenerator.exe)
+for anyone who'd rather skip building it themselves.
 
 ## Background
 
