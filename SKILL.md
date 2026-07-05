@@ -37,7 +37,7 @@ into decode/DSP software.
 
 ## Script
 
-`scripts/qcii_warble_gen.py` — a self-contained Python script (numpy +
+`scripts/qcii_tone_gen.py` — a self-contained Python script (numpy +
 stdlib `wave`) that builds the page as: pre-silence → A tone → optional gap →
 B tone → optional warble tail (C/D tones, or A/B if C/D not given) →
 post-silence, then writes a 16-bit PCM mono WAV.
@@ -48,13 +48,13 @@ post-silence, then writes a 16-bit PCM mono WAV.
 pip install numpy --break-system-packages  # if not already available
 
 # Basic page, no warble tail
-python3 scripts/qcii_warble_gen.py --a 1122.5 --b 1433.4 --warble-dur 0 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --warble-dur 0 --out page.wav
 
 # Standard page + warble tail reusing A/B tones (QC-D default behavior)
-python3 scripts/qcii_warble_gen.py --a 1122.5 --b 1433.4 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --out page.wav
 
 # Standard page + warble tail using independent C/D tones
-python3 scripts/qcii_warble_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out page.wav
 ```
 
 ### Key flags
@@ -70,9 +70,9 @@ python3 scripts/qcii_warble_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out 
 | `--pre-silence` / `--post-silence` | Padding before/after the page (s) | 0.25 / 0.25 |
 | `--rate` | Sample rate (Hz) | 44100 |
 | `--amplitude` | Peak amplitude, 0.0–1.0 | 0.8 |
-| `--out` | Output WAV path | `/mnt/user-data/outputs/qcii_warble_page.wav` |
+| `--out` | Output WAV path | `output/qcii_tone_page.wav` (repo-root `output/` folder; override with `--out /mnt/user-data/outputs/<name>.wav` when running as this skill — see Workflow step 3) |
 
-Run `python3 scripts/qcii_warble_gen.py --help` for the full list.
+Run `python3 scripts/qcii_tone_gen.py --help` for the full list.
 
 `scripts/generate_all_pairs.py` batch-generates QCII page WAVs from the real
 Table 1 group-assignment + tone-position construction documented in
@@ -99,8 +99,10 @@ Groups 6, 10, and 11 aren't covered by either mode (see Table 3 caveat above).
    battery-save uses shorter B-tone durations; some legacy systems use
    longer tones — see conversation history / RadioReference forum posts for
    real-world variants like Dallas TX FD's 3s/2s/4s timing).
-3. Run the script with the appropriate flags, writing output to
-   `/mnt/user-data/outputs/`.
+3. Run the script with the appropriate flags. The script's own default
+   writes to the repo-root `output/` folder, but when running as this
+   skill (sandboxed environment), pass `--out /mnt/user-data/outputs/<name>.wav`
+   explicitly so the file lands where `present_files` (step 4) can find it.
 4. Present the resulting WAV file to the user via `present_files`.
 5. If the user wants to iterate on timing/frequencies, just rerun with
    different flags rather than regenerating the script — it's parameterized
@@ -110,7 +112,7 @@ Groups 6, 10, and 11 aren't covered by either mode (see Table 3 caveat above).
 
 If asked to extend further (e.g. stacked multi-page sequences, all-call
 single-tone format, group-call variants, batch-generating a whole tone
-chart), modify `scripts/qcii_warble_gen.py` directly:
+chart), modify `scripts/qcii_tone_gen.py` directly:
 - `tone()` — generates a single sine tone with fade in/out (reusable building
   block).
 - `warble_tail()` — alternates between two frequencies in fixed segments.

@@ -13,7 +13,7 @@ into decode/DSP software.
 ## Requirements
 
 - Python 3.9+ (developed/tested on 3.12)
-- [numpy](https://numpy.org/) for `qcii_warble_gen.py` and
+- [numpy](https://numpy.org/) for `qcii_tone_gen.py` and
   `generate_all_pairs.py`:
   ```bash
   pip install numpy
@@ -30,13 +30,13 @@ into decode/DSP software.
 
 ```bash
 # Basic page, no warble tail
-python3 scripts/qcii_warble_gen.py --a 1122.5 --b 1433.4 --warble-dur 0 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --warble-dur 0 --out page.wav
 
 # Standard page + warble tail reusing A/B tones (QC-D default behavior)
-python3 scripts/qcii_warble_gen.py --a 1122.5 --b 1433.4 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --out page.wav
 
 # Standard page + warble tail using independent C/D tones
-python3 scripts/qcii_warble_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out page.wav
+python3 scripts/qcii_tone_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out page.wav
 ```
 
 Or launch the desktop GUI:
@@ -47,14 +47,14 @@ python3 scripts/qcii_gui.py
 
 ## Scripts
 
-### `scripts/qcii_warble_gen.py`
+### `scripts/qcii_tone_gen.py`
 
 The core generator. Builds one page as: pre-silence → A tone → optional gap
 → B tone → optional warble tail (C/D tones, or A/B reused if C/D aren't
 given) → post-silence, then writes a 16-bit PCM mono WAV. Reach for this
 when you have a specific A/B (and optional C/D) tone set to render.
 
-Run `python3 scripts/qcii_warble_gen.py --help` for the full flag list.
+Run `python3 scripts/qcii_tone_gen.py --help` for the full flag list.
 Key flags:
 
 | Flag | Meaning | Default |
@@ -68,7 +68,7 @@ Key flags:
 | `--pre-silence` / `--post-silence` | Padding before/after the page (s) | 0.25 / 0.25 |
 | `--rate` | Sample rate (Hz) | 44100 |
 | `--amplitude` | Peak amplitude, 0.0-1.0 | 0.8 |
-| `--out` | Output WAV path | `/mnt/user-data/outputs/qcii_warble_page.wav` |
+| `--out` | Output WAV path | `output/qcii_tone_page.wav` (repo-root output/ folder) |
 
 ### `scripts/generate_all_pairs.py`
 
@@ -89,13 +89,13 @@ python3 scripts/generate_all_pairs.py --mode full
 ```
 
 Both modes accept `--c`/`--d` to give the warble tail an independent tone
-pair, same as `qcii_warble_gen.py`. Output is written to `output/` at the
+pair, same as `qcii_tone_gen.py`. Output is written to `output/` at the
 repo root (created automatically). Groups 6, 10, and 11 aren't covered by
 either mode — see the Table 3 caveat in `references/tone_charts.md`.
 
 ### `scripts/qcii_gui.py`
 
-A Tkinter desktop front end for `qcii_warble_gen.py`. Lets you set A/B/C/D
+A Tkinter desktop front end for `qcii_tone_gen.py`. Lets you set A/B/C/D
 frequencies, timing, and output path, then generate and play back the
 resulting WAV without touching the command line. Conveniences over the raw
 script:

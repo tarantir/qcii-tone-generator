@@ -16,15 +16,20 @@ real-world QC-D behavior on many consoles). Pass --c/--d to make the warble
 use a completely independent tone pair instead of reusing A/B.
 
 Usage:
-  python3 qcii_warble_gen.py
-  python3 qcii_warble_gen.py --a 1122.5 --b 1433.4 --out my_page.wav
-  python3 qcii_warble_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out my_page.wav
+  python3 qcii_tone_gen.py
+  python3 qcii_tone_gen.py --a 1122.5 --b 1433.4 --out my_page.wav
+  python3 qcii_tone_gen.py --a 1122.5 --b 1433.4 --c 1500 --d 800 --out my_page.wav
 """
 
 import argparse
+import os
 import numpy as np
 import wave
 import struct
+
+DEFAULT_OUT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "output", "qcii_tone_page.wav"
+)
 
 
 def tone(freq, duration_s, sample_rate, amplitude=0.8, fade_ms=5):
@@ -114,7 +119,7 @@ def main():
     p.add_argument("--post-silence", type=float, default=0.25, help="Silence after the page in seconds (default 0.25)")
     p.add_argument("--rate", type=int, default=44100, help="Sample rate (default 44100)")
     p.add_argument("--amplitude", type=float, default=0.8, help="Amplitude 0.0-1.0 (default 0.8)")
-    p.add_argument("--out", type=str, default="/mnt/user-data/outputs/qcii_warble_page.wav", help="Output WAV filename")
+    p.add_argument("--out", type=str, default=DEFAULT_OUT, help="Output WAV filename")
 
     args = p.parse_args()
 
@@ -128,6 +133,7 @@ def main():
         c_freq=args.c, d_freq=args.d,
     )
 
+    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     write_wav(args.out, samples, args.rate)
     total_len = len(samples) / args.rate
     warble_f1 = args.c if args.c is not None else args.a

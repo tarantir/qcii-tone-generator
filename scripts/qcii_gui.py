@@ -2,7 +2,7 @@
 """
 QCII Two-Tone + Warble Tone Generator — Desktop GUI
 ----------------------------------------------------
-Tkinter front end for qcii_warble_gen.py. Lets you set A/B/C/D tone
+Tkinter front end for qcii_tone_gen.py. Lets you set A/B/C/D tone
 frequencies, timing, and output path, then generate and play back the
 resulting WAV without touching the command line.
 
@@ -37,10 +37,12 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from qcii_warble_gen import build_page, write_wav
+from qcii_tone_gen import build_page, write_wav
 from generate_all_pairs import GROUP_ASSIGNMENT, POSITION_DIGITS, tone_at_position
 
-DEFAULT_OUT = os.path.expanduser("~/qcii_page.wav")
+DEFAULT_OUT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "output", "qcii_page.wav"
+)
 DEFAULT_C = "1500"
 DEFAULT_D = "800"
 
