@@ -89,6 +89,13 @@ ALERT_PRESETS = {
 }
 DEFAULT_ALERT = "Alert 2 (1500/800 Hz warble, default)"
 
+DISCLAIMER_TEXT = (
+    "This tool generates reference tones for testing pager/decoder programming "
+    "(Minitor V, MOTOTRBO QCII decode, RXC-2000/RDC station alerting boxes, DIY "
+    "tone decoders, etc).\n\n"
+    "It is for testing purposes only and is not a dispatch or alerting system."
+)
+
 # Non-frequency dropdown entries: these drive other widgets/fields instead
 # of setting a literal C/D tone pair, so apply_alert_preset() special-cases
 # them rather than looking them up in ALERT_PRESETS.
@@ -282,6 +289,37 @@ class QCIIApp(tk.Tk):
 
         self._build_config_window()
         self._build_viz_window()
+
+        # Let the main window paint first, then show the disclaimer on top.
+        self.after(150, self._show_disclaimer)
+
+    def _show_disclaimer(self):
+        """Modal disclaimer shown once at launch. Agree continues into the
+        app; Cancel (or closing the dialog) quits the whole program --
+        this isn't a dismissable notice, it's a gate."""
+        dialog = tk.Toplevel(self)
+        dialog.title("Testing Purposes Only")
+        dialog.resizable(False, False)
+        dialog.transient(self)
+        dialog.protocol("WM_DELETE_WINDOW", self.destroy)
+
+        frame = ttk.Frame(dialog, padding=16)
+        frame.grid(row=0, column=0, sticky="nsew")
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+
+        ttk.Label(frame, text=DISCLAIMER_TEXT, wraplength=360, justify="left").grid(
+            row=0, column=0, columnspan=2, pady=(0, 16)
+        )
+        ttk.Button(
+            frame, text="Cancel", command=self.destroy,
+        ).grid(row=1, column=0, sticky="ew", padx=(0, 4))
+        ttk.Button(
+            frame, text="I Agree, Continue", style="Accent.TButton", command=dialog.destroy,
+        ).grid(row=1, column=1, sticky="ew", padx=(4, 0))
+
+        dialog.grab_set()
+        dialog.wait_window(dialog)
 
     def _init_style(self):
         """Set up the color/type tokens: a bold heading face for group
