@@ -34,6 +34,7 @@ import shutil
 import subprocess
 import sys
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import ttk, filedialog, messagebox
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -97,16 +98,38 @@ SAME_AS_AB_OPTION = "Same as A/B (reuse page tones)"
 SUPPRESS_ALERT_OPTION = "Suppress Alert (no C/D warble)"
 ALERT_OPTIONS = list(ALERT_PRESETS.keys()) + [SAME_AS_AB_OPTION, SUPPRESS_ALERT_OPTION]
 
-# Fill colors for the timeline visualization canvas (200-stop equivalents,
-# legible on the canvas's white background).
+# Color tokens. signal-amber is the one accent thread running through the
+# app: it's the "Warble C" viz color, the Generate button, and (via the
+# viz's dark console treatment) the thing this whole tool is about --
+# the alert tone. Everything else stays quiet/native.
+COLOR_INK = "#1C1F26"
+COLOR_SLATE = "#5B6472"
+COLOR_ACCENT = "#EF9F27"
+COLOR_ACCENT_ACTIVE = "#E08A12"
+COLOR_CONSOLE_BG = "#2E323C"
+COLOR_CONSOLE_TEXT = "#E7E4DC"
+
+# Fill colors for the timeline visualization canvas -- tuned bright/saturated
+# for the dark "console readout" background (see _build_viz_window), not the
+# plain white a generic form control would use.
 VIZ_COLORS = {
-    "silence": "#B4B2A9",
-    "a": "#85B7EB",
-    "b": "#5DCAA5",
-    "c": "#EF9F27",
-    "d": "#AFA9EC",
+    "silence": "#565C68",
+    "a": "#4FA8FF",
+    "b": "#2FE3A8",
+    "c": COLOR_ACCENT_ACTIVE,
+    "d": "#B58CFF",
 }
 VIZ_LEGEND_LABELS = {"silence": "Silence", "a": "A Tone", "b": "B Tone", "c": "Warble C", "d": "Warble D"}
+
+
+def _first_available_font(candidates):
+    """Return the first font family from candidates installed on this
+    system, falling back to the last (generic) candidate if none match."""
+    available = set(tkfont.families())
+    for name in candidates:
+        if name in available:
+            return name
+    return candidates[-1]
 
 
 def group_digit_choices():
@@ -159,12 +182,14 @@ class QCIIApp(tk.Tk):
         self.entries = {}
         self.entry_widgets = {}
 
+        self._init_style()
+
         form = ttk.Frame(self, padding=12)
         form.grid(row=0, column=0, sticky="nsew")
         row = 0
 
-        capcode_frame = ttk.LabelFrame(form, text="Populate A/B from QCII address")
-        capcode_frame.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+        capcode_frame = ttk.LabelFrame(form, text="Populate A/B from QCII address", padding=(8, 6))
+        capcode_frame.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(0, 16))
         row += 1
         group_digits = group_digit_choices()
         position_digits = position_digit_choices()
@@ -181,30 +206,35 @@ class QCIIApp(tk.Tk):
             side="left", padx=(8, 8), pady=6
         )
 
-        alert_frame = ttk.LabelFrame(form, text="Populate C/D from Motorola alert style (optional)")
-        alert_frame.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(0, 10))
+        alert_frame = ttk.LabelFrame(form, text="Populate C/D from Motorola alert style (optional)", padding=(8, 6))
+        alert_frame.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(0, 16))
         row += 1
         self.alert_var = tk.StringVar(value=DEFAULT_ALERT)
         alert_combo = ttk.Combobox(alert_frame, textvariable=self.alert_var,
                                     values=ALERT_OPTIONS, width=32, state="readonly")
-        alert_combo.pack(side="left", padx=8, pady=6)
+        alert_combo.pack(side="left", pady=2)
         alert_combo.bind("<<ComboboxSelected>>", lambda _e: self.apply_alert_preset())
 
-        for key, label, default in MAIN_FIELDS:
-            ttk.Label(form, text=label).grid(row=row, column=0, sticky="w", pady=2)
+        tone_frame = ttk.LabelFrame(form, text="Tone frequencies", padding=(8, 6))
+        tone_frame.grid(row=row, column=0, columnspan=2, sticky="ew", pady=(0, 16))
+        tone_frame.columnconfigure(1, weight=1)
+        row += 1
+        for i, (key, label, default) in enumerate(MAIN_FIELDS):
+            ttk.Label(tone_frame, text=label, style="Field.TLabel").grid(
+                row=i, column=0, sticky="w", pady=4
+            )
             var = tk.StringVar(value=default)
-            entry = ttk.Entry(form, textvariable=var, width=28)
-            entry.grid(row=row, column=1, sticky="ew", pady=2, padx=(8, 0))
+            entry = ttk.Entry(tone_frame, textvariable=var, width=28, font=self.mono_font)
+            entry.grid(row=i, column=1, sticky="ew", pady=4, padx=(8, 0))
             self.entries[key] = var
             self.entry_widgets[key] = entry
-            row += 1
 
         self.suppress_warble = tk.BooleanVar(value=False)
         self.suppress_warble_chk = ttk.Checkbutton(
             form, text="Suppress Alert (skip C/D Alert)", variable=self.suppress_warble,
             command=self.on_toggle_warble,
         )
-        self.suppress_warble_chk.grid(row=row, column=0, columnspan=2, sticky="w", pady=(4, 2))
+        self.suppress_warble_chk.grid(row=row, column=0, columnspan=2, sticky="w", pady=(0, 4))
         row += 1
 
         self.warble_only = tk.BooleanVar(value=False)
@@ -212,20 +242,26 @@ class QCIIApp(tk.Tk):
             form, text="Alert Only (skip A/B Page)", variable=self.warble_only,
             command=self.on_toggle_warble_only,
         )
-        self.warble_only_chk.grid(row=row, column=0, columnspan=2, sticky="w", pady=(0, 8))
+        self.warble_only_chk.grid(row=row, column=0, columnspan=2, sticky="w", pady=(0, 16))
         row += 1
 
-        ttk.Label(form, text="Output WAV path").grid(row=row, column=0, sticky="w", pady=2)
+        ttk.Label(form, text="Output WAV path", style="Field.TLabel").grid(
+            row=row, column=0, sticky="w", pady=4
+        )
         self.out_var = tk.StringVar(value=DEFAULT_OUT)
         out_frame = ttk.Frame(form)
-        out_frame.grid(row=row, column=1, sticky="ew", pady=2, padx=(8, 0))
-        ttk.Entry(out_frame, textvariable=self.out_var, width=22).pack(side="left", fill="x", expand=True)
+        out_frame.grid(row=row, column=1, sticky="ew", pady=4, padx=(8, 0))
+        ttk.Entry(out_frame, textvariable=self.out_var, width=22, font=self.mono_font).pack(
+            side="left", fill="x", expand=True
+        )
         ttk.Button(out_frame, text="Browse...", command=self.browse_output).pack(side="left", padx=(4, 0))
         row += 1
 
         btn_frame = ttk.Frame(form)
-        btn_frame.grid(row=row, column=0, columnspan=2, pady=(12, 4), sticky="ew")
-        self.generate_btn = ttk.Button(btn_frame, text="Generate", command=self.generate)
+        btn_frame.grid(row=row, column=0, columnspan=2, pady=(16, 4), sticky="ew")
+        self.generate_btn = ttk.Button(
+            btn_frame, text="Generate", command=self.generate, style="Accent.TButton"
+        )
         self.generate_btn.pack(side="left", expand=True, fill="x", padx=(0, 4))
         self.play_btn = ttk.Button(btn_frame, text="Play", command=self.play)
         self.play_btn.pack(side="left", expand=True, fill="x", padx=4)
@@ -242,12 +278,44 @@ class QCIIApp(tk.Tk):
         row += 1
 
         self.status_var = tk.StringVar(value="Ready.")
-        ttk.Label(form, textvariable=self.status_var, foreground="#555").grid(
+        ttk.Label(form, textvariable=self.status_var, style="Status.TLabel").grid(
             row=row, column=0, columnspan=2, sticky="w", pady=(8, 0)
         )
 
         self._build_config_window()
         self._build_viz_window()
+
+    def _init_style(self):
+        """Set up the color/type tokens: a bold heading face for group
+        titles, a monospace face for numeric fields (this is a tone-
+        frequency instrument, not a generic form), and one accent color
+        (signal-amber) reserved for the Generate button. ttk's 'clam'
+        theme is used as a base because it actually honors style
+        configuration, unlike the native platform themes."""
+        base_family = tkfont.nametofont("TkDefaultFont").actual("family")
+        mono_family = _first_available_font(
+            ["Consolas", "Menlo", "DejaVu Sans Mono", "Courier New", "Courier"]
+        )
+        # Keep references alive on self -- Font objects get garbage
+        # collected (and silently revert) if nothing holds onto them.
+        self.heading_font = tkfont.Font(family=base_family, size=10, weight="bold")
+        self.mono_font = tkfont.Font(family=mono_family, size=10)
+        self.status_font = tkfont.Font(family=base_family, size=9, slant="italic")
+
+        style = ttk.Style(self)
+        style.theme_use("clam")
+        style.configure(".", foreground=COLOR_INK)
+        style.configure("TLabelframe.Label", font=self.heading_font, foreground=COLOR_INK)
+        style.configure("Field.TLabel", foreground=COLOR_SLATE)
+        style.configure("Status.TLabel", font=self.status_font, foreground=COLOR_SLATE)
+        style.configure(
+            "Accent.TButton", background=COLOR_ACCENT, foreground=COLOR_INK,
+            font=(base_family, 10, "bold"), padding=6,
+        )
+        style.map(
+            "Accent.TButton",
+            background=[("active", COLOR_ACCENT_ACTIVE), ("disabled", "#D9B98A")],
+        )
 
     def _build_config_window(self):
         win = tk.Toplevel(self)
@@ -261,10 +329,12 @@ class QCIIApp(tk.Tk):
         config_form.grid(row=0, column=0, sticky="nsew")
 
         for i, (key, label, default) in enumerate(CONFIG_FIELDS):
-            ttk.Label(config_form, text=label).grid(row=i, column=0, sticky="w", pady=2)
+            ttk.Label(config_form, text=label, style="Field.TLabel").grid(
+                row=i, column=0, sticky="w", pady=4
+            )
             var = tk.StringVar(value=default)
-            entry = ttk.Entry(config_form, textvariable=var, width=20)
-            entry.grid(row=i, column=1, sticky="ew", pady=2, padx=(8, 0))
+            entry = ttk.Entry(config_form, textvariable=var, width=20, font=self.mono_font)
+            entry.grid(row=i, column=1, sticky="ew", pady=4, padx=(8, 0))
             self.entries[key] = var
             self.entry_widgets[key] = entry
 
@@ -284,7 +354,10 @@ class QCIIApp(tk.Tk):
         win.protocol("WM_DELETE_WINDOW", win.withdraw)
         self.viz_win = win
 
-        self.viz_canvas = tk.Canvas(win, width=640, height=220, bg="white", highlightthickness=0)
+        win.configure(bg=COLOR_CONSOLE_BG)
+        self.viz_canvas = tk.Canvas(
+            win, width=640, height=220, bg=COLOR_CONSOLE_BG, highlightthickness=0
+        )
         self.viz_canvas.pack(padx=12, pady=(12, 0))
         ttk.Button(win, text="Refresh", command=self.visualize).pack(pady=12)
 
@@ -408,7 +481,10 @@ class QCIIApp(tk.Tk):
         canvas.delete("all")
         total = sum(seg[2] for seg in segments)
         if total <= 0:
-            canvas.create_text(320, 100, text="Nothing to draw - all durations are 0.")
+            canvas.create_text(
+                320, 100, text="Nothing to draw - all durations are 0.",
+                fill=COLOR_CONSOLE_TEXT,
+            )
             return
 
         margin, bar_width, bar_y, bar_h = 10, 620, 60, 40
@@ -426,7 +502,10 @@ class QCIIApp(tk.Tk):
                     color = VIZ_COLORS["c"] if i % 2 == 0 else VIZ_COLORS["d"]
                     canvas.create_rectangle(x + i * seg_w, bar_y, x + (i + 1) * seg_w, bar_y + bar_h,
                                              fill=color, outline="")
-                canvas.create_text(x + w / 2, bar_y - 14, text=f"C/D {c_freq:g}/{d_freq:g} Hz")
+                canvas.create_text(
+                    x + w / 2, bar_y - 14, text=f"C/D {c_freq:g}/{d_freq:g} Hz",
+                    fill=COLOR_CONSOLE_TEXT,
+                )
                 for key in ("c", "d"):
                     if key not in used:
                         used.append(key)
@@ -434,18 +513,28 @@ class QCIIApp(tk.Tk):
                 canvas.create_rectangle(x, bar_y, x + w, bar_y + bar_h, fill=VIZ_COLORS[kind], outline="")
                 if kind != "silence":
                     label = "A" if kind == "a" else "B"
-                    canvas.create_text(x + w / 2, bar_y - 14, text=f"{label} {info:g} Hz")
+                    canvas.create_text(
+                        x + w / 2, bar_y - 14, text=f"{label} {info:g} Hz",
+                        fill=COLOR_CONSOLE_TEXT,
+                    )
                 if kind not in used:
                     used.append(kind)
-            canvas.create_text(x + w / 2, bar_y + bar_h + 14, text=f"{dur:.2f}s")
+            canvas.create_text(
+                x + w / 2, bar_y + bar_h + 14, text=f"{dur:.2f}s", fill=COLOR_CONSOLE_TEXT
+            )
             x += w
 
         lx, ly = margin, bar_y + bar_h + 40
         for key in used:
             canvas.create_rectangle(lx, ly, lx + 14, ly + 14, fill=VIZ_COLORS[key], outline="")
-            canvas.create_text(lx + 20, ly + 7, anchor="w", text=VIZ_LEGEND_LABELS[key])
+            canvas.create_text(
+                lx + 20, ly + 7, anchor="w", text=VIZ_LEGEND_LABELS[key], fill=COLOR_CONSOLE_TEXT
+            )
             lx += 100
-        canvas.create_text(margin, ly + 30, anchor="w", text=f"Total duration: {total:.2f}s")
+        canvas.create_text(
+            margin, ly + 30, anchor="w", text=f"Total duration: {total:.2f}s",
+            fill=COLOR_CONSOLE_TEXT,
+        )
 
     def generate(self):
         """Render a WAV from the current field values. Returns True on success."""
