@@ -29,7 +29,7 @@ into decode/DSP software.
 - Real-world example tone set used in prior work: A = 321.7 Hz, B = 569.1 Hz.
 - The full standard tone charts (Motorola QC1/QC2 Reed groups, GE Type 99, REACH,
   Plectron, CTCSS, DTMF, and per-format paging timing table) are in
-  `references/tone_charts.md`. Load that file when the user needs a specific
+  `docs/tone_charts.md`. Load that file when the user needs a specific
   standard frequency/group, wants to generate a page for a non-default tone set
   they can't supply themselves, or wants to extend the script to another paging
   format (GE, REACH, Plectron, etc). Not needed for ordinary requests where the
@@ -76,7 +76,7 @@ Run `python3 scripts/qcii_tone_gen.py --help` for the full list.
 
 `scripts/generate_all_pairs.py` batch-generates QCII page WAVs from the real
 Table 1 group-assignment + tone-position construction documented in
-`references/tone_charts.md` — **not** adjacent tones from the same group's
+`docs/tone_charts.md` — **not** adjacent tones from the same group's
 frequency list, which are only 8-40 Hz apart and undecodable in practice.
 
 - `--mode representative` (default): one sample per valid first-digit (11

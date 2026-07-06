@@ -49,7 +49,7 @@ python3 scripts/qcii_gui.py
 
 | Main window | Config | Visualize |
 |---|---|---|
-| ![Main window](references/qcii-main.png) | ![Config dialog](references/qcii-config.png) | ![Visualize window](references/qcii-visualize.png) |
+| ![Main window](docs/qcii-main.png) | ![Config dialog](docs/qcii-config.png) | ![Visualize window](docs/qcii-visualize.png) |
 
 ## Scripts
 
@@ -75,6 +75,7 @@ Key flags:
 | `--rate` | Sample rate (Hz) | 44100 |
 | `--amplitude` | Peak amplitude, 0.0-1.0 | 0.8 |
 | `--out` | Output WAV path | `output/qcii_tone_page.wav` (repo-root output/ folder) |
+| `--play` | Play the generated WAV after writing it | off |
 
 ### `scripts/generate_all_pairs.py`
 
@@ -97,7 +98,7 @@ python3 scripts/generate_all_pairs.py --mode full
 Both modes accept `--c`/`--d` to give the warble tail an independent tone
 pair, same as `qcii_tone_gen.py`. Output is written to `output/` at the
 repo root (created automatically). Groups 6, 10, and 11 aren't covered by
-either mode — see the Table 3 caveat in `references/tone_charts.md`.
+either mode — see the Table 3 caveat in `docs/tone_charts.md`.
 
 ### `scripts/qcii_gui.py`
 
@@ -153,15 +154,16 @@ The full tone charts — Motorola QC1/QC2 Reed groups, the Table 1 group
 assignment, the Table 3 extended code plan, and reference tables for other
 paging formats (GE Type 99, REACH, Plectron, CTCSS, DTMF, and a per-format
 timing table) — are reproduced for offline reference in
-[`references/tone_charts.md`](references/tone_charts.md).
+[`docs/tone_charts.md`](docs/tone_charts.md).
 
 ## Repo layout
 
 ```
 scripts/                  generator scripts + GUI (see above)
-references/tone_charts.md offline copy of the source tone charts
-references/Tone-signaling-charts.pdf  original reference sheet
+docs/tone_charts.md        offline copy of the source tone charts
+docs/Tone-signaling-charts.pdf  original reference sheet
 output/                   default write location for generated WAVs (not tracked in git; created on demand)
+docs/additional_tone_scripts.md  MODAT, SELCAL, five-tone (Select-5), and TPT generator scripts
 ```
 
 ## License

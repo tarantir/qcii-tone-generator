@@ -30,7 +30,6 @@ Usage:
 
 import os
 import platform
-import shutil
 import subprocess
 import sys
 import tkinter as tk
@@ -40,6 +39,7 @@ from tkinter import ttk, filedialog, messagebox
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from qcii_tone_gen import build_page, write_wav, default_output_dir
 from generate_all_pairs import GROUP_ASSIGNMENT, POSITION_DIGITS, tone_at_position
+from playback import find_player
 
 DEFAULT_OUT = os.path.join(default_output_dir(), "qcii_page.wav")
 DEFAULT_C = "1500"
@@ -163,19 +163,6 @@ def capcode_to_ab(capcode):
     a_freq = tone_at_position(group_a, d2)
     b_freq = tone_at_position(group_b, d3)
     return a_freq, b_freq, group_a, group_b
-
-
-def find_player():
-    system = platform.system()
-    if system == "Linux":
-        for cmd in ("paplay", "aplay", "ffplay"):
-            if shutil.which(cmd):
-                return [cmd]
-    elif system == "Darwin":
-        return ["afplay"]
-    elif system == "Windows":
-        return None  # handled via winsound
-    return None
 
 
 class QCIIApp(tk.Tk):

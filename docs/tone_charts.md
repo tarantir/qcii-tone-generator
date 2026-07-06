@@ -179,7 +179,7 @@ Dia (diagonal) tone: 742.5 Hz.
 | GE Type 99 | Bramco, Ledex/RCA |
 | Group A | Group J |
 
-## Aviation — AVCALL 2+2
+## Aviation — AVCALL 2+2 / SELCAL
 
 | Tone | Frequency |
 |---|---|
@@ -199,6 +199,15 @@ Dia (diagonal) tone: 742.5 Hz.
 | Q | 1202.3 |
 | R | 1333.5 |
 | S | 1479.1 |
+
+This is the same 16-tone set used by ICAO Annex 10 Vol II Section 5.2.4 /
+ARINC 714A SELCAL (`scripts/selcal_tone_gen.py`), sourced from
+en.wikipedia.org/wiki/SELCAL and code7700.com/selcal.htm. Structure not
+captured by the table above: a SELCAL code is 4 letters written as two
+pairs (e.g. `AB-CD`); each pair's two tones sound *simultaneously* (not
+sequentially) for 1.0±0.25s, with a 0.2±0.1s gap between the two pulses.
+Convention (not a physical requirement): the two letters within each pair
+are in alphabetical order, and no letter repeats across the 4-letter code.
 
 ## REACH
 
@@ -264,14 +273,38 @@ Tone width: 40 ± 5 ms (both high and low).
 | 8 | 2000 | 2000 | 1830 | 2000 | 1830 | 1830 | 1747 | 1747 | 1747 | 1747 | 510.7 | 1336 | 1728 | 1837.5 |
 | 9 | 2200 | 2200 | 2000 | 2200 | 2000 | 2000 | 1860 | 1860 | 1860 | 1860 | 470.8 | 1477 | 1869 | 1987.5 |
 
-Group/Reset/Repeat tones (A/B/C/D/E/F) and timing parameters (tone width, sequence
-length, inter-tone gap, encoder tolerance, decode/reject bandwidth) are in the
-original Midian chart if a full non-Motorola five-tone implementation is ever
-needed — not reproduced here since this project targets QCII specifically.
+### ZVEI Family Group/Reset/Repeat Tones (A-F)
+
+Used by `scripts/select5_tone_gen.py`. Only reliably documented for the ZVEI
+family (sourced from sigidwiki.com/wiki/ZVEI_Selcall); CCIR/EEA control-tone
+frequencies are incomplete/conflicting across sources and aren't reproduced
+here — `select5_tone_gen.py` accepts digits 0-9 only for those formats.
+
+| Letter | Function | ZVEI1 | ZVEI2 | ZVEI3 | PZVEI | DZVEI | PDZVEI |
+|---|---|---|---|---|---|---|---|
+| A | Group | 2800 | 885 | 885 | 970 | 825/885 | 825 |
+| B | Group | 810 | 810 | — | 810 | 740 | 886 |
+| C | Reset | 970 | 740 | — | 2800 | 2600 | 2600 |
+| D | Reset | 885 | 680 | — | 885 | 885 | 856 |
+| E | Repeat | 2600 | 970 | 2400 | 2600 | 2400 | 2400 |
+| F | Repeat | 680 | 2600 | — | 680 | 680 | — |
+
+Timing (ZVEI family): tone width 70±15ms, max inter-tone gap 15ms, sequence
+length ~350ms for 5 tones. CCIR1/PCCIR use 100ms tones, CCIR2 70ms, EEA 40ms.
 
 Caution from source: the group/reset/repeat tones are sometimes modified by
 manufacturers; DZVEI's "A" tone is 825 Hz per spec but several manufacturers use
-885 Hz instead. The 0-9 digit tones are standard across implementations.
+885 Hz instead (`select5_tone_gen.py` uses 885 Hz to match this file's DZVEI
+digit column). The 0-9 digit tones are standard across implementations.
+
+MODAT (this table's last column) also has an 11th tone not shown above: R
+(repeat) = 487.5 Hz, used by `scripts/modat_tone_gen.py` (sourced from
+batboard.batlabs.com MODAT format threads and sigidwiki.com/wiki/MODAT). Note
+the algorithm Motorola radios use to encode a 4-digit MODAT unit ID into the
+transmitted 7-tone burst is not publicly documented — field reports show
+inconsistent tone counts (6 vs 7) for the same ID, so `modat_tone_gen.py`
+takes the literal tone sequence to transmit rather than attempting that
+encoding.
 
 ## Plectron
 
@@ -383,6 +416,25 @@ Additional tone remote frequencies (0 dB, 40 ms unless noted): 1750 Hz (Receiver
 1450 Hz (min squelch / repeater on / PL off), 1350 Hz (freq 3 / CTCSS 1 select /
 wild card 1 on), 1250 Hz (freq 4 / CTCSS 2 select / wild card 1 off), 1150 Hz
 (CTCSS 3 select / wild card 2 on), 1050 Hz (CTCSS 4 select / wild card 2 off).
+
+## Talk Permit Tone (TPT)
+
+Motorola trunked-radio "beep(s)" confirming a trunking grant (or, on
+MOTOTRBO conventional channels, just "you are now transmitting").
+Implemented in `scripts/tpt_tone_gen.py`.
+
+| Variant | Shape | Source confidence |
+|---|---|---|
+| P25 classic | 910 Hz: 30ms, 20ms gap, 30ms, 20ms gap, 50ms | Widely-referenced custom-tone example, not a formal ITU/TIA spec |
+| P25 MOTOTRBO | 1569/1046/1569/1317 Hz (G6/C6/G6/E6), 40ms each, no gaps | Confirmed by multiple independent sources (kg4cyx.net, DMR user forums); Motorola CPS rounds these to 1570/1050/1570/1320 Hz |
+| iDEN/Nextel | Same shape as P25 classic, at 1800 Hz | Single non-authoritative source; this is a *higher* pitch than P25, which contradicts other descriptions of it as "lower-pitched" — unresolved |
+
+P25 Clear Alert (an unencrypted-channel warning beep) and the distinct low
+"bonk" tone some radios play when a trunking handshake fails are both real
+Motorola features with no single documented frequency/timing across radio
+models/system configs — not reproduced here; `tpt_tone_gen.py` errors
+rather than guessing if asked for the former, and doesn't implement the
+latter at all.
 
 ## DTMF (Touch-Tone) Frequencies
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Batch-generate QCII page WAVs from the Motorola General Encoding Plan
-(Table 1) + Reed tone groups (see references/tone_charts.md), confirmed
+(Table 1) + Reed tone groups (see docs/tone_charts.md), confirmed
 against the worked example on batlabs.com/qcii.html (QCII address 635 -> A =
 Reed group 2 tone 3 = 669.9 Hz, B = Reed group 1 tone 5 = 433.7 Hz):
 

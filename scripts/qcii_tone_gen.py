@@ -28,6 +28,9 @@ import numpy as np
 import wave
 import struct
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from playback import play_file  # noqa: E402
+
 
 def default_output_dir():
     """Directory generated WAVs are written to by default: normally the
@@ -131,6 +134,7 @@ def main():
     p.add_argument("--rate", type=int, default=44100, help="Sample rate (default 44100)")
     p.add_argument("--amplitude", type=float, default=0.8, help="Amplitude 0.0-1.0 (default 0.8)")
     p.add_argument("--out", type=str, default=DEFAULT_OUT, help="Output WAV filename")
+    p.add_argument("--play", action="store_true", help="Play the generated WAV after writing it")
 
     args = p.parse_args()
 
@@ -157,6 +161,9 @@ def main():
     print(f"  Warble tail: {args.warble_dur}s alternating {warble_f1}/{warble_f2} Hz "
           f"in {args.warble_seg}s segments (source: {warble_source})")
     print(f"  Total length: {total_len:.2f}s")
+
+    if args.play:
+        play_file(args.out)
 
 
 if __name__ == "__main__":
